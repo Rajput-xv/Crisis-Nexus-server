@@ -13,8 +13,7 @@ const incidentSchema = new mongoose.Schema({
   incidentDescription: { type: String, required: true },
   affectedIndividuals: { type: Number, required: true },
   incidentStatus: { type: String, required: true },
-  urgency: { type: String, required: true },
-  image: { type: String, required: true }
+  urgency: { type: String, required: true }
 }, { timestamps: true });
 
 const Incident = mongoose.model('Incident', incidentSchema);

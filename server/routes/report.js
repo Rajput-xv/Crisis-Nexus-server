@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Incident = require('../models/IncidentReport');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 const { v4: uuidv4 } = require('uuid');
 
-router.post('/report', upload.single('image'), async (req, res) => {
+router.post('/report', async (req, res) => {
   try {
     const { incidentType, otherIncident, incidentDate, incidentLocation, incidentDescription, affectedIndividuals, incidentStatus, urgency } = req.body;
-    const image = req.file.path;
     const incidentId = uuidv4();
 
     const newIncident = new Incident({
@@ -20,8 +17,7 @@ router.post('/report', upload.single('image'), async (req, res) => {
       incidentDescription,
       affectedIndividuals,
       incidentStatus,
-      urgency,
-      image
+      urgency
     });
 
     await newIncident.save();
