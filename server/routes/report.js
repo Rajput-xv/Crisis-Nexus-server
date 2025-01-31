@@ -30,7 +30,7 @@ router.post('/report', async (req, res) => {
 // Add GET method to fetch incidents
 router.get('/report', async (req, res) => {
   try {
-    const incidents = await Incident.find();
+    const incidents = await Incident.find({});
     res.status(200).json(incidents);
   } catch (error) {
     res.status(500).json({ error: error.message });
