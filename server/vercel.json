@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "Crisis Nexus Backend",
+    "builds": [
+       { "src": "server.js", "use": "@vercel/node" }
+    ],
+    "routes": [
+       { "src": "/(.*)", "dest": "/server.js" }
+    ]
+ }
