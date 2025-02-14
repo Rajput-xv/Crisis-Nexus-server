@@ -3,7 +3,7 @@ const router = express.Router();
 const Incident = require('../models/IncidentReport');
 const { v4: uuidv4 } = require('uuid');
 
-router.post('/report', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { incidentType, otherIncident, incidentDate, incidentLocation, incidentDescription, affectedIndividuals, incidentStatus, urgency } = req.body;
     const incidentId = uuidv4();
@@ -28,7 +28,7 @@ router.post('/report', async (req, res) => {
 });
 
 // Add GET method to fetch incidents
-router.get('/report', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const incidents = await Incident.find({});
     res.status(200).json(incidents);
