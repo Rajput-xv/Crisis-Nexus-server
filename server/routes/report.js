@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
       incidentType,
       otherIncident,
       incidentDate,
-      incidentLocation: JSON.parse(incidentLocation),
+      incidentLocation: JSON.parse(incidentLocation), // Ensure this is correct
       incidentDescription,
       affectedIndividuals,
       incidentStatus,
@@ -23,6 +23,7 @@ router.post('/', async (req, res) => {
     await newIncident.save();
     res.status(201).json(newIncident);
   } catch (error) {
+    console.error('Error saving incident:', error); // Log the actual error
     res.status(500).json({ error: error.message });
   }
 });
