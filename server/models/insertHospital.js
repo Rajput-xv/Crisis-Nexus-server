@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Event = require('./Hospital');
+const Hospital = require('./Hospital');
 require('dotenv').config();
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -231,7 +231,7 @@ const sampleHospitals = [
 
 const insertHospital = async () => {
   try {
-    await Event.insertMany(sampleHospitals);
+    await Hospital.insertMany(sampleHospitals);
     console.log('Sample Hospitals inserted successfully');
     mongoose.connection.close();
   } catch (error) {
