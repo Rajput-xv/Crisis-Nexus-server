@@ -1,11 +1,11 @@
 const router = require('express').Router();
-const Event = require('../models/Hospital');
+const hospitals = require('../models/Hospital');
 
-router.get("/api/hospitals", (req, res) => {
+router.get("/", (req, res) => {
     return res.json(hospitals);
 });
 
-router.get("/api/hospitals/:city", (req, res) => {
+router.get("/:city", (req, res) => {
     const city = req.params.city;
 
     const hospitalsInCity = hospitals.filter(
