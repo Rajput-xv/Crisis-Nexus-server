@@ -5,7 +5,7 @@ const HospitalSchema = new mongoose.Schema({
   address: { type: String, required: true },
   city: { type: String, required: true },
   pinCode: { type: String, required: true },
-  phoneNumber: { type: String, required: true },
+  phoneNumber: { type: String, required: false },
   rating: { type: Number, required: true },
   longitude: { type: Number, required: true },
   latitude: { type: Number, required: true }
