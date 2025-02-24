@@ -22,6 +22,7 @@ app.use('/api/donations', require('./routes/donations'));
 app.use('/api/resources', require('./routes/resources'));
 app.use('/api/report', require('./routes/report'));
 app.use('/api/weather', require('./routes/weather'));
+app.use('/api/hospitals', require('./routes/hospital'));
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
