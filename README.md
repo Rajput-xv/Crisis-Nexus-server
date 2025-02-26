@@ -29,18 +29,19 @@ To get started with the Disaster Relief and Recovery Platform, follow these step
 4. Start the application.
 
 ## Environment Variables
-Create a `.env` file in the root directory of your project with the following content:
-
-MONGODB_URI=mongodb://localhost:27017/disaster_relief_db
-
-JWT_SECRET=your_generated_jwt_secret_key_here
-
+Create a `.env` file in the server directory of your project with the following content:
 
 Generate a JWT secret key using the following command in your terminal:
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
-Replace the placeholder values with your actual MongoDB connection string and generated JWT secret key.
+```bash
+MONGODB_URI=mongodb://atlas-sql-679b6550f8ad6a407aa4ea76-21pnx.a.query.mongodb.net/test?ssl=true&authSource=admin
+JWT_SECRET=your_generated_jwt_secret_key_here
+OPENWEATHER_API_KEY=Your_Api_Key
+PORT=5000
+```
+Replace the placeholder values with your generated JWT secret key.
 
 ## Backend Setup
 Navigate to the server directory and run the following commands:
