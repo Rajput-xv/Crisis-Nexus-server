@@ -3,9 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const UserProfile = require('../models/UserProfile');
-const VerificationCode = require('../models/VerificationCode');
 const auth = require('../middleware/auth');
-const { saveVerificationCode, verifyCode, sendVerificationEmail } = require('../services/emailService');
+const { saveVerificationCode, verifyCode, sendVerificationEmail, isEmailVerified } = require('../services/emailService');
 
 // Send verification code
 router.post('/send-verification', async (req, res) => {
@@ -23,31 +22,32 @@ router.post('/send-verification', async (req, res) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Generate 6-digit code
+    // Generate code and save in memory
     const code = await saveVerificationCode(email);
 
     // Send email
-    await sendVerificationEmail(email, code)
-      .catch(error => {
-        console.error('Email sending failed:', error);
-        throw new Error('Failed to send verification email');
-      });
+    await sendVerificationEmail(email, code);
 
-    res.status(200).json({ message: 'Verification code sent' });
+    res.status(200).json({ message: 'Verification code sent to your email' });
   } catch (error) {
     console.error('Error sending verification code:', error);
     res.status(500).json({ 
-      error: error.message,
       message: 'Failed to send verification code' 
     });
-  }
+  } 
 });
 
 // Verify code
 router.post('/verify-code', async (req, res) => {
   try {
     const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email and verification code are required' });
+    }
+    
     const result = await verifyCode(email, code);
+    
     if (!result.success) {
       return res.status(400).json({ message: result.message });
     }
@@ -56,7 +56,6 @@ router.post('/verify-code', async (req, res) => {
   } catch (error) {
     console.error('Error verifying code:', error);
     res.status(500).json({ 
-      error: error.message,
       message: 'Verification failed' 
     });
   }
@@ -70,9 +69,8 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check email verification
-    const verificationEntry = await VerificationCode.findOne({ email });
-    if (!verificationEntry?.verified) {
+     // Check email verification
+     if (!isEmailVerified(email)) {
       return res.status(400).json({ message: 'Email verification required' });
     }
 
@@ -92,9 +90,6 @@ router.post('/register', async (req, res) => {
       level: 1
     });
     await userProfile.save();
-
-    // Cleanup verification entry
-    await VerificationCode.deleteOne({ email });
 
     // Generate token
     const payload = { userId: user._id };
