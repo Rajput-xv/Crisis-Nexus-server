@@ -2,11 +2,11 @@ const router = require('express').Router();
 const axios = require('axios');
 
 router.get('/nearby', async (req, res) => {
-    const { latitude, longitude } = req.query;
+    const { lat, lng } = req.query; // Change to match frontend query parameters
 
-    console.log("Received request for nearby hospitals:", { latitude, longitude });
+    console.log("Received request for nearby hospitals:", { lat, lng });
 
-    if (!latitude || !longitude) {
+    if (!lat || !lng) {
         return res.status(400).json({ message: "Latitude and longitude are required" });
     }
 
@@ -22,8 +22,8 @@ router.get('/nearby', async (req, res) => {
             locationRestriction: {
                 circle: {
                     center: {
-                        latitude: parseFloat(latitude),
-                        longitude: parseFloat(longitude)
+                        latitude: parseFloat(lat), // Use `lat` and `lng` here
+                        longitude: parseFloat(lng)
                     },
                     radius: radius
                 }
@@ -52,7 +52,9 @@ router.get('/nearby', async (req, res) => {
             name: place.displayName?.text || 'N/A',
             address: place.formattedAddress || 'N/A',
             types: place.types || [],
-            website: place.websiteUri || 'N/A'
+            website: place.websiteUri || 'N/A',
+            latitude: place.location?.lat || 0, // Ensure latitude is included
+            longitude: place.location?.lng || 0 // Ensure longitude is included
         }));
 
         res.json({ places: refinedPlaces });
