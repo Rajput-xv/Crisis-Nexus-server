@@ -1,12 +1,64 @@
 const router = require('express').Router();
-const Hospital = require('../models/Hospital');
+const axios = require('axios');
 
-router.get("/", async (req, res) => {
+router.get('/nearby', async (req, res) => {
+    const { latitude, longitude } = req.query;
+
+    console.log("Received request for nearby hospitals:", { latitude, longitude });
+
+    if (!latitude || !longitude) {
+        return res.status(400).json({ message: "Latitude and longitude are required" });
+    }
+
     try {
-        const hospitals = await Hospital.find();
-        res.json(hospitals);
+        const apiKey = process.env.REACT_APP_GOOGLE_PLACES_API_KEY;
+        const radius = 50000; // Search within 50km radius
+        const includedTypes = ["hospital"];
+        const maxResultCount = 20;
+
+        const url = `https://places.googleapis.com/v1/places:searchNearby`;
+
+        const requestBody = {
+            locationRestriction: {
+                circle: {
+                    center: {
+                        latitude: parseFloat(latitude),
+                        longitude: parseFloat(longitude)
+                    },
+                    radius: radius
+                }
+            },
+            includedTypes,
+            maxResultCount
+        };
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri'
+        };
+
+        console.log("Requesting Google Places API:", { url, requestBody, headers });
+
+        const response = await axios.post(url, requestBody, { headers });
+        console.log("Response from Google Places API:", response.data);
+
+        if (!response.data.places || response.data.places.length === 0) {
+            return res.status(404).json({ message: "No nearby hospitals found" });
+        }
+
+        // Refine the response to include only the required fields
+        const refinedPlaces = response.data.places.map(place => ({
+            name: place.displayName?.text || 'N/A',
+            address: place.formattedAddress || 'N/A',
+            types: place.types || [],
+            website: place.websiteUri || 'N/A'
+        }));
+
+        res.json({ places: refinedPlaces });
     } catch (err) {
-        res.status(500).json({ message: "Something broke!" });
+        console.error("Error fetching nearby hospitals:", err);
+        res.status(500).json({ message: "Something went wrong", error: err.message });
     }
 });
 
@@ -20,6 +72,7 @@ router.get("/:city", async (req, res) => {
         }
         res.json(hospitalsInCity);
     } catch (err) {
+        console.error("Error fetching hospitals by city:", err);
         res.status(500).json({ message: "Something broke!" });
     }
 });
