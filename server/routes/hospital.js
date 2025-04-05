@@ -35,7 +35,7 @@ router.get('/nearby', async (req, res) => {
         const headers = {
             'Content-Type': 'application/json',
             'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri'
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri,places.location'
         };
 
         console.log("Requesting Google Places API:", { url, requestBody, headers });
@@ -53,8 +53,8 @@ router.get('/nearby', async (req, res) => {
             address: place.formattedAddress || 'N/A',
             types: place.types || [],
             website: place.websiteUri || 'N/A',
-            latitude: place.location?.lat || 0, // Ensure latitude is included
-            longitude: place.location?.lng || 0 // Ensure longitude is included
+            lat: place.location?.latitude ? parseFloat(place.location.latitude) : null,
+            lng: place.location?.longitude ? parseFloat(place.location.longitude) : null
         }));
 
         res.json({ places: refinedPlaces });
