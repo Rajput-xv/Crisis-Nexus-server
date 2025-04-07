@@ -33,15 +33,17 @@ router.get('/nearby', async (req, res) => {
         };
 
         const headers = {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json', 
             'X-Goog-Api-Key': apiKey,
             'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri,places.location'
         };
 
-        console.log("Requesting Google Places API:", { url, requestBody, headers });
+        // console.log("Requesting Google Places API:", { url, requestBody, headers });
 
         const response = await axios.post(url, requestBody, { headers });
-        console.log("Response from Google Places API:", response.data);
+        // console.log("Response from Google Places API:", response.data);
+
+        // console.log(response.data.places.location);
 
         if (!response.data.places || response.data.places.length === 0) {
             return res.status(404).json({ message: "No nearby hospitals found" });

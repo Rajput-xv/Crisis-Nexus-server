@@ -7,7 +7,7 @@ const UserProfile = require('../models/UserProfile');
 const auth = require('../middleware/auth'); // Import the auth middleware
 
 const updateUserLevel = async (userProfile) => {
-  const newLevel = Math.floor(userProfile.points / 100) + 1;
+  const newLevel = Math.floor(userProfile.points / 1000) + 1;
   if (userProfile.level !== newLevel) {
     userProfile.level = newLevel;
     await userProfile.save();
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
     // Update user points
     const userProfile = await UserProfile.findOne({ user: donor });
     if (userProfile) {
-        const pointsToAdd = Math.floor(quantity / 10) * 5; // Calculate points based on quantity
+        const pointsToAdd = Math.floor(quantity / 100) * 5; // Calculate points based on quantity
         userProfile.points += pointsToAdd;
         await userProfile.save();
         await updateUserLevel(userProfile); // Update user level based on points
@@ -93,7 +93,8 @@ router.get('/:id', async (req, res) => {
 // Update a resource
 router.put('/:id', auth, async (req, res) => {
   try {
-    const resource = await Resource.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updatedData = { ...req.body, lastUpdated: Date.now() };
+    const resource = await Resource.findByIdAndUpdate(req.params.id, updatedData, { new: true });
     if (!resource) {
       return res.status(404).json({ message: 'Resource not found' });
     }

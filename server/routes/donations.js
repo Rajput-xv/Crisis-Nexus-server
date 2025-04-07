@@ -5,7 +5,7 @@ const User = require('../models/User');
 const UserProfile = require('../models/UserProfile'); // Assuming you have a UserProfile model
 
 const updateUserLevel = async (userProfile) => {
-  const newLevel = Math.floor(userProfile.points / 100) + 1;
+  const newLevel = Math.floor(userProfile.points / 1000) + 1;
   if (userProfile.level !== newLevel) {
     userProfile.level = newLevel;
     await userProfile.save();
@@ -14,13 +14,14 @@ const updateUserLevel = async (userProfile) => {
 
 router.post('/', async (req, res) => {
   try {
-    const donation = new Donation(req.body);
+    const { donor, item, quantity } = req.body; // Extract only required fields
+    const donation = new Donation({ donor, item, quantity }); // Use default donatedAt
     await donation.save();
 
     // Update user points
     const userProfile = await UserProfile.findOne({ user: donation.donor });
     if (userProfile) {
-      const pointsToAdd = Math.floor(donation.amount / 100) * 10; // Calculate points based on donation amount
+      const pointsToAdd = Math.floor(donation.amount / 1000) * 10; // Calculate points based on donation amount
       userProfile.points += pointsToAdd;
       await userProfile.save();
       await updateUserLevel(userProfile); // Update user level based on points
