@@ -101,8 +101,9 @@ router.get('/nearby', async (req, res) => {
 
 router.get('/city/:cityName', async (req, res) => {
     const { cityName } = req.params;
+    const { lat, lng } = req.query; // Get user's current location from query params
 
-    console.log("Received request for hospitals in city:", cityName);
+    console.log("Received request for hospitals in city:", cityName, "User location:", { lat, lng });
 
     if (!cityName) {
         return res.status(400).json({ message: "City name is required" });
@@ -158,13 +159,16 @@ router.get('/city/:cityName', async (req, res) => {
         }
 
         // Refine the response to include only the required fields and calculate distances
+        const userLat = lat ? parseFloat(lat) : cityLat; // Use user location if available, otherwise city center
+        const userLng = lng ? parseFloat(lng) : cityLng;
+        
         const refinedPlaces = response.data.places.map(place => {
             const hospitalLat = place.location?.latitude ? parseFloat(place.location.latitude) : null;
             const hospitalLng = place.location?.longitude ? parseFloat(place.location.longitude) : null;
             
-            // Calculate distance from city center
+            // Calculate distance from user's current location (or city center if user location not available)
             const distance = (hospitalLat && hospitalLng) 
-                ? calculateDistance(cityLat, cityLng, hospitalLat, hospitalLng)
+                ? calculateDistance(userLat, userLng, hospitalLat, hospitalLng)
                 : null;
             
             return {
@@ -178,7 +182,7 @@ router.get('/city/:cityName', async (req, res) => {
             };
         });
 
-        // Sort hospitals by distance (closest to city center first)
+        // Sort hospitals by distance (closest to user's location first)
         const sortedHospitals = refinedPlaces
             .filter(hospital => hospital.distance !== null)
             .sort((a, b) => a.distance - b.distance);
