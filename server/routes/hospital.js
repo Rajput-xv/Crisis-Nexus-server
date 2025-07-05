@@ -99,6 +99,97 @@ router.get('/nearby', async (req, res) => {
     }
 });
 
+router.get('/city/:cityName', async (req, res) => {
+    const { cityName } = req.params;
+
+    console.log("Received request for hospitals in city:", cityName);
+
+    if (!cityName) {
+        return res.status(400).json({ message: "City name is required" });
+    }
+
+    try {
+        const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+        const maxResultCount = 20;
+
+        // First, get the city coordinates using Geocoding API
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=${apiKey}`;
+        
+        const geocodeResponse = await axios.get(geocodeUrl);
+        
+        if (!geocodeResponse.data.results || geocodeResponse.data.results.length === 0) {
+            return res.status(404).json({ message: "City not found" });
+        }
+
+        const location = geocodeResponse.data.results[0].geometry.location;
+        const cityLat = location.lat;
+        const cityLng = location.lng;
+
+        // Now search for hospitals near this city
+        const radius = 25000; // 25km radius for city search
+        const includedTypes = ["hospital"];
+
+        const url = `https://places.googleapis.com/v1/places:searchNearby`;
+
+        const requestBody = {
+            locationRestriction: {
+                circle: {
+                    center: {
+                        latitude: parseFloat(cityLat),
+                        longitude: parseFloat(cityLng)
+                    },
+                    radius: radius
+                }
+            },
+            includedTypes,
+            maxResultCount
+        };
+
+        const headers = {
+            'Content-Type': 'application/json', 
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.types,places.websiteUri,places.location'
+        };
+
+        const response = await axios.post(url, requestBody, { headers });
+
+        if (!response.data.places || response.data.places.length === 0) {
+            return res.status(404).json({ message: `No hospitals found in ${cityName}` });
+        }
+
+        // Refine the response to include only the required fields and calculate distances
+        const refinedPlaces = response.data.places.map(place => {
+            const hospitalLat = place.location?.latitude ? parseFloat(place.location.latitude) : null;
+            const hospitalLng = place.location?.longitude ? parseFloat(place.location.longitude) : null;
+            
+            // Calculate distance from city center
+            const distance = (hospitalLat && hospitalLng) 
+                ? calculateDistance(cityLat, cityLng, hospitalLat, hospitalLng)
+                : null;
+            
+            return {
+                name: place.displayName?.text || 'N/A',
+                address: place.formattedAddress || 'N/A',
+                types: place.types || [],
+                website: place.websiteUri || 'N/A',
+                lat: hospitalLat,
+                lng: hospitalLng,
+                distance: distance ? Math.round(distance * 100) / 100 : null // Round to 2 decimal places
+            };
+        });
+
+        // Sort hospitals by distance (closest to city center first)
+        const sortedHospitals = refinedPlaces
+            .filter(hospital => hospital.distance !== null)
+            .sort((a, b) => a.distance - b.distance);
+
+        res.json({ places: sortedHospitals });
+    } catch (err) {
+        console.error("Error fetching hospitals by city:", err);
+        res.status(500).json({ message: "Something went wrong", error: err.message });
+    }
+});
+
 router.get("/:city", async (req, res) => {
     const city = req.params.city;
 
