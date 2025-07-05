@@ -11,7 +11,7 @@ router.get('/nearby', async (req, res) => {
     }
 
     try {
-        const apiKey = process.env.REACT_APP_GOOGLE_PLACES_API_KEY;
+        const apiKey = process.env.GOOGLE_PLACES_API_KEY;
         const radius = 50000; // Search within 50km radius
         const includedTypes = ["hospital"];
         const maxResultCount = 20;
