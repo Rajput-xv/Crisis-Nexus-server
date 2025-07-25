@@ -76,7 +76,7 @@ OPENWEATHER_API_KEY=your_openweather_api_key
 # Server Configuration
 PORT=5000
 
-# Email Service (SendinBlue)
+# Email Service (SendinBlue) https://www.brevo.com
 SENDINBLUE_API_KEY=your_sendinblue_api_key
 
 <!-- # Payment Processing (Stripe)

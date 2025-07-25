@@ -112,6 +112,33 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
+    
+    // Check for admin credentials first
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (email === adminEmail && password === adminPassword) {
+      const token = jwt.sign(
+        { 
+          id: 'admin',
+          email: adminEmail,
+          role: 'admin'
+        }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '24h' }
+      );
+      return res.json({
+        token,
+        user: {
+          id: 'admin',
+          email: adminEmail,
+          username: process.env.ADMIN_USERNAME,
+          role: 'admin'
+        }
+      });
+    }
+    
+    // Regular user login
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
