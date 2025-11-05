@@ -126,6 +126,98 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Send password reset code
+router.post('/send-reset-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate code and save in memory
+    const code = await saveVerificationCode(email);
+
+    // Send email
+    await sendVerificationEmail(email, code);
+
+    res.status(200).json({ message: 'Reset code sent to your email' });
+  } catch (error) {
+    console.error('Error sending reset code:', error);
+    res.status(500).json({ 
+      message: 'Failed to send reset code' 
+    });
+  } 
+});
+
+// Verify reset code
+router.post('/verify-reset-code', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email and verification code are required' });
+    }
+    
+    const result = await verifyCode(email, code);
+    
+    if (!result.success) {
+      return res.status(400).json({ message: result.message });
+    }
+
+    res.status(200).json({ message: 'Code verified successfully' });
+  } catch (error) {
+    console.error('Error verifying reset code:', error);
+    res.status(500).json({ 
+      message: 'Verification failed' 
+    });
+  }
+});
+
+// Reset password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: 'Email, code, and new password are required' });
+    }
+
+    // Verify code one more time
+    const result = await verifyCode(email, code);
+    if (!result.success) {
+      return res.status(400).json({ message: 'Invalid or expired code' });
+    }
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ 
+      message: 'Password reset failed' 
+    });
+  }
+});
+
 // Get user route
 router.get('/user', auth, async (req, res) => {
   try {
